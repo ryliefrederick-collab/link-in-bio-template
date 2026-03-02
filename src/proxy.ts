@@ -26,7 +26,7 @@ async function verifyToken(token: string, secret: string): Promise<boolean> {
   return signature === expectedHex;
 }
 
-export async function middleware(request: NextRequest) {
+export async function proxy(request: NextRequest) {
   const secret = process.env.SESSION_SECRET;
   if (!secret) {
     console.error("SESSION_SECRET is not set");
