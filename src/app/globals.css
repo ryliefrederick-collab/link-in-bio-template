@@ -1,26 +1,133 @@
 @import "tailwindcss";
 
+/* ─── Custom Font Faces ─────────────────────────────────── */
+@font-face {
+  font-family: "TRT Unamo";
+  src: url("/fonts/TRTunamoDEMO-Regular.ttf") format("truetype");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "TRT Unamo";
+  src: url("/fonts/TRTunamoDEMO-Bold.ttf") format("truetype");
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "The Seasons";
+  src: url("/fonts/Fontspring-DEMO-theseasons-reg.otf") format("opentype");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "The Seasons";
+  src: url("/fonts/Fontspring-DEMO-theseasons-bd.otf") format("opentype");
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Neue Montreal";
+  src: url("/fonts/NeueMontreal-Regular.otf") format("opentype");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Neue Montreal";
+  src: url("/fonts/NeueMontreal-Medium.otf") format("opentype");
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Neue Montreal";
+  src: url("/fonts/NeueMontreal-Bold.otf") format("opentype");
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* ─── CSS Variables (Theme Defaults) ────────────────────── */
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --color-primary: #fff4b8;
+  --color-secondary: #ffd6e0;
+  --color-background: #e8eec9;
+  --color-surface: #ffffff;
+  --color-text: #2d2d2d;
+  --color-text-muted: #6b6b6b;
+  --color-accent: #a01717;
+  --color-button-bg: #a01717;
+  --color-button-text: #e8eec9;
+  --color-campaign-bg: #f6f3e8;
+  --color-campaign-border: #4a2c1d;
+  --color-name: #4a2c1d;
+  --color-subtitle: #a01717;
+
+  --font-heading: "TRT Unamo", sans-serif;
+  --font-body: "TRT Unamo", sans-serif;
+  --font-name: "The Seasons", serif;
+  --font-buttons: "Neue Montreal", sans-serif;
+
+  --button-radius: 9999px;
 }
 
+/* ─── Tailwind v4 Theme Tokens ──────────────────────────── */
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --color-primary: var(--color-primary);
+  --color-secondary: var(--color-secondary);
+  --color-background: var(--color-background);
+  --color-surface: var(--color-surface);
+  --color-foreground: var(--color-text);
+  --color-muted: var(--color-text-muted);
+  --color-accent: var(--color-accent);
+  --color-button-bg: var(--color-button-bg);
+  --color-button-text: var(--color-button-text);
+  --color-campaign-bg: var(--color-campaign-bg);
+  --color-campaign-border: var(--color-campaign-border);
+  --color-name: var(--color-name);
+  --color-subtitle: var(--color-subtitle);
+
+  --font-heading: var(--font-heading);
+  --font-body: var(--font-body);
+  --font-name: var(--font-name);
+  --font-buttons: var(--font-buttons);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
-}
-
+/* ─── Base Styles ───────────────────────────────────────── */
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background-color: var(--color-background);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='360' height='360'%3E%3Cg fill='none' stroke='%23f6f3e8' stroke-width='1.4' opacity='0.7'%3E%3Cpath d='M0 28 Q20 26 45 29 Q70 32 95 27 Q130 25 160 30 Q185 32 210 28 Q240 26 270 31 Q300 33 330 28 Q345 27 360 29'/%3E%3Cpath d='M0 93 Q25 95 55 91 Q80 88 110 93 Q145 96 175 92 Q200 89 230 94 Q265 96 295 91 Q325 88 360 93'/%3E%3Cpath d='M0 152 Q30 150 58 153 Q85 156 115 151 Q150 148 180 153 Q205 155 235 150 Q268 148 298 154 Q330 156 360 151'/%3E%3Cpath d='M0 218 Q22 220 50 216 Q78 214 108 219 Q140 221 172 217 Q198 214 228 219 Q260 222 290 217 Q322 214 360 218'/%3E%3Cpath d='M0 278 Q28 276 52 280 Q82 283 112 277 Q148 275 178 280 Q202 282 232 278 Q266 275 296 281 Q328 283 360 278'/%3E%3Cpath d='M0 340 Q18 342 48 338 Q75 336 105 341 Q138 343 168 339 Q195 336 225 340 Q258 343 288 338 Q320 336 360 341'/%3E%3Cpath d='M32 0 Q30 22 33 50 Q35 78 31 108 Q29 140 34 170 Q36 195 31 225 Q29 258 33 288 Q36 320 32 360'/%3E%3Cpath d='M95 0 Q97 25 93 55 Q90 82 94 112 Q97 145 92 178 Q90 205 95 232 Q97 262 93 295 Q90 325 95 360'/%3E%3Cpath d='M158 0 Q156 20 159 48 Q162 80 157 110 Q155 142 160 172 Q162 198 157 230 Q155 265 160 298 Q162 328 158 360'/%3E%3Cpath d='M224 0 Q226 24 222 52 Q219 85 224 115 Q226 148 221 175 Q219 202 224 235 Q227 268 222 300 Q219 330 224 360'/%3E%3Cpath d='M285 0 Q283 18 286 46 Q289 78 284 108 Q282 138 287 168 Q289 200 284 232 Q282 260 287 292 Q289 325 285 360'/%3E%3Cpath d='M342 0 Q344 28 340 55 Q338 82 343 115 Q345 148 340 178 Q337 205 342 238 Q345 270 340 302 Q338 332 342 360'/%3E%3C/g%3E%3C/svg%3E");
+  background-repeat: repeat;
+  background-size: 360px 360px;
+  color: var(--color-text);
+  font-family: var(--font-body);
+}
+
+/* ─── Dashboard Font Overrides ─────────────────────────── */
+.dashboard-heading {
+  font-family: "The Seasons", serif;
+}
+
+/* ─── Link Card Transitions ─────────────────────────────── */
+.link-card {
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.link-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+.link-card:active {
+  transform: translateY(0);
 }
