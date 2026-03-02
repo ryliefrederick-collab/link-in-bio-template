@@ -4,12 +4,13 @@ import { siteSettings } from "@/db/schema";
 import { eq } from "drizzle-orm";
 
 export async function GET() {
-  const settings = await db.query.siteSettings.findFirst({
+  let settings = await db.query.siteSettings.findFirst({
     where: eq(siteSettings.id, 1),
   });
 
   if (!settings) {
-    return NextResponse.json({ error: "Settings not found" }, { status: 404 });
+    const [created] = await db.insert(siteSettings).values({ id: 1 }).returning();
+    settings = created;
   }
 
   return NextResponse.json(settings);
@@ -20,12 +21,15 @@ export async function PUT(request: NextRequest) {
     const body = await request.json();
 
     const [result] = await db
-      .update(siteSettings)
-      .set({
-        ...body,
-        updatedAt: new Date().toISOString(),
+      .insert(siteSettings)
+      .values({ id: 1 })
+      .onConflictDoUpdate({
+        target: siteSettings.id,
+        set: {
+          ...body,
+          updatedAt: new Date().toISOString(),
+        },
       })
-      .where(eq(siteSettings.id, 1))
       .returning();
 
     return NextResponse.json(result);

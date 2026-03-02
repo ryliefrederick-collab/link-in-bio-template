@@ -25,15 +25,18 @@ export default function CustomizePage() {
   const [colors, setColors] = useState<ColorPalette>(DEFAULT_COLORS);
   const [profileName, setProfileName] = useState("");
   const [profileBio, setProfileBio] = useState("");
+  const [profileImageUrl, setProfileImageUrl] = useState("");
   const [buttonRadius, setButtonRadius] = useState("9999px");
   const [saving, setSaving] = useState(false);
 
   const fetchSettings = useCallback(async () => {
     const res = await fetch("/api/settings");
+    if (!res.ok) return;
     const data: SiteSettings = await res.json();
     setSettings(data);
     setProfileName(data.profileName);
     setProfileBio(data.profileBio);
+    setProfileImageUrl(data.profileImageUrl || "");
 
     try {
       const parsed = JSON.parse(data.colorPalette);
@@ -62,6 +65,7 @@ export default function CustomizePage() {
       body: JSON.stringify({
         profileName,
         profileBio,
+        profileImageUrl,
         colorPalette: JSON.stringify(colors),
         buttonStyle: JSON.stringify({
           borderRadius: buttonRadius,
@@ -132,6 +136,21 @@ export default function CustomizePage() {
                   className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm"
                   rows={2}
                 />
+              </div>
+              <div>
+                <label className="mb-1 block text-xs font-medium text-gray-500">
+                  Profile Image URL
+                </label>
+                <input
+                  type="url"
+                  value={profileImageUrl}
+                  onChange={(e) => setProfileImageUrl(e.target.value)}
+                  placeholder="https://example.com/photo.jpg"
+                  className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm"
+                />
+                <p className="mt-1 text-xs text-gray-400">
+                  Paste a link to your profile photo.
+                </p>
               </div>
             </div>
           </section>
@@ -230,12 +249,20 @@ export default function CustomizePage() {
             >
               {/* Preview Profile */}
               <div className="flex flex-col items-center gap-2 pb-4">
-                <div
-                  className="flex h-16 w-16 items-center justify-center rounded-full text-xl font-bold"
-                  style={{ backgroundColor: colors.secondary, color: colors.nameColor }}
-                >
-                  {profileName?.charAt(0)?.toUpperCase() || "?"}
-                </div>
+                {profileImageUrl ? (
+                  <img
+                    src={profileImageUrl}
+                    alt={profileName || "Profile"}
+                    className="h-16 w-16 rounded-full object-cover"
+                  />
+                ) : (
+                  <div
+                    className="flex h-16 w-16 items-center justify-center rounded-full text-xl font-bold"
+                    style={{ backgroundColor: colors.secondary, color: colors.nameColor }}
+                  >
+                    {profileName?.charAt(0)?.toUpperCase() || "?"}
+                  </div>
+                )}
                 <p
                   className="text-sm font-bold"
                   style={{ fontFamily: '"The Seasons", serif', color: colors.nameColor }}
