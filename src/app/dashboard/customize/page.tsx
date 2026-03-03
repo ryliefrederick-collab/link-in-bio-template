@@ -4,6 +4,32 @@ import { useEffect, useState, useCallback } from "react";
 import type { SiteSettings, ColorPalette } from "@/types";
 import { THEME_PRESETS, DEFAULT_COLORS } from "@/lib/constants";
 
+function compressImage(file: File, maxSize = 256, quality = 0.8): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    const url = URL.createObjectURL(file);
+    img.onload = () => {
+      URL.revokeObjectURL(url);
+      let w = img.width;
+      let h = img.height;
+      if (w > h) {
+        if (w > maxSize) { h = Math.round(h * maxSize / w); w = maxSize; }
+      } else {
+        if (h > maxSize) { w = Math.round(w * maxSize / h); h = maxSize; }
+      }
+      const canvas = document.createElement("canvas");
+      canvas.width = w;
+      canvas.height = h;
+      const ctx = canvas.getContext("2d");
+      if (!ctx) { reject(new Error("Canvas not supported")); return; }
+      ctx.drawImage(img, 0, 0, w, h);
+      resolve(canvas.toDataURL("image/jpeg", quality));
+    };
+    img.onerror = () => { URL.revokeObjectURL(url); reject(new Error("Failed to load image")); };
+    img.src = url;
+  });
+}
+
 const COLOR_FIELDS: { key: keyof ColorPalette; label: string }[] = [
   { key: "primary", label: "Primary" },
   { key: "secondary", label: "Secondary" },
@@ -26,6 +52,7 @@ export default function CustomizePage() {
   const [profileName, setProfileName] = useState("");
   const [profileBio, setProfileBio] = useState("");
   const [profileImageUrl, setProfileImageUrl] = useState("");
+  const [uploadError, setUploadError] = useState("");
   const [buttonRadius, setButtonRadius] = useState("9999px");
   const [saving, setSaving] = useState(false);
 
@@ -88,6 +115,33 @@ export default function CustomizePage() {
     setColors((prev) => ({ ...prev, [key]: value }));
   };
 
+  const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    setUploadError("");
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (!file.type.startsWith("image/")) {
+      setUploadError("Please select an image file.");
+      return;
+    }
+
+    if (file.size > 5 * 1024 * 1024) {
+      setUploadError("Image must be under 5 MB.");
+      return;
+    }
+
+    try {
+      const dataUri = await compressImage(file);
+      setProfileImageUrl(dataUri);
+    } catch {
+      setUploadError("Failed to process image. Try a different file.");
+    }
+  };
+
+  const handleRemoveImage = () => {
+    setProfileImageUrl("");
+  };
+
   if (!settings) return null;
 
   return (
@@ -139,17 +193,48 @@ export default function CustomizePage() {
               </div>
               <div>
                 <label className="mb-1 block text-xs font-medium text-gray-500">
-                  Profile Image URL
+                  Profile Image
                 </label>
-                <input
-                  type="url"
-                  value={profileImageUrl}
-                  onChange={(e) => setProfileImageUrl(e.target.value)}
-                  placeholder="https://example.com/photo.jpg"
-                  className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm"
-                />
-                <p className="mt-1 text-xs text-gray-400">
-                  Paste a link to your profile photo.
+                <div className="flex items-center gap-4">
+                  <div className="h-16 w-16 flex-shrink-0 overflow-hidden rounded-full bg-gray-100">
+                    {profileImageUrl ? (
+                      <img
+                        src={profileImageUrl}
+                        alt="Profile preview"
+                        className="h-full w-full object-cover"
+                      />
+                    ) : (
+                      <div className="flex h-full w-full items-center justify-center text-lg font-bold text-gray-400">
+                        {profileName?.charAt(0)?.toUpperCase() || "?"}
+                      </div>
+                    )}
+                  </div>
+                  <div className="flex flex-col gap-2">
+                    <label className="cursor-pointer rounded-lg border border-gray-300 px-3 py-1.5 text-center text-xs font-medium text-gray-700 transition-colors hover:bg-gray-50">
+                      Choose Photo
+                      <input
+                        type="file"
+                        accept="image/jpeg,image/png,image/webp"
+                        className="hidden"
+                        onChange={handleFileSelect}
+                      />
+                    </label>
+                    {profileImageUrl && (
+                      <button
+                        type="button"
+                        onClick={handleRemoveImage}
+                        className="text-xs text-red-500 hover:text-red-700"
+                      >
+                        Remove
+                      </button>
+                    )}
+                  </div>
+                </div>
+                {uploadError && (
+                  <p className="mt-1 text-xs text-red-500">{uploadError}</p>
+                )}
+                <p className="mt-2 text-xs text-gray-400">
+                  JPG, PNG, or WebP. Max 5 MB. Will be resized to 256px.
                 </p>
               </div>
             </div>
