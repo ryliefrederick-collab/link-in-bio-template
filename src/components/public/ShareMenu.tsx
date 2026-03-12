@@ -188,18 +188,29 @@ export function ShareMenu({ url, title, variant = "dots" }: ShareMenuProps) {
             aria-hidden="true"
           />
 
-          {/* Bottom sheet */}
-          <div className="fixed bottom-0 left-0 right-0 z-50 flex justify-center">
-            <div className="w-full max-w-md rounded-t-2xl bg-white px-6 pb-8 pt-4 shadow-2xl">
-              {/* Drag handle */}
-              <div className="mx-auto mb-4 h-1 w-10 rounded-full bg-gray-300" />
+          {/* Centered dialog */}
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-6">
+            <div className="w-full max-w-sm rounded-2xl bg-white px-6 pb-6 pt-5 shadow-2xl">
 
-              <h3 className="mb-5 text-center text-xs font-semibold uppercase tracking-widest text-gray-400">
-                Share
-              </h3>
+              {/* Header row */}
+              <div className="flex items-center justify-between mb-5">
+                <h3 className="text-sm font-semibold uppercase tracking-widest text-gray-400">
+                  Share
+                </h3>
+                <button
+                  onClick={handleClose}
+                  className="flex h-7 w-7 items-center justify-center rounded-full bg-gray-100 text-gray-500 transition-colors hover:bg-gray-200"
+                  aria-label="Close"
+                >
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" width="14" height="14" aria-hidden="true">
+                    <line x1="18" y1="6" x2="6" y2="18" />
+                    <line x1="6" y1="6" x2="18" y2="18" />
+                  </svg>
+                </button>
+              </div>
 
               {/* Platform grid — 4 columns, 2 rows */}
-              <div className="grid grid-cols-4 gap-x-3 gap-y-5 mb-2">
+              <div className="grid grid-cols-4 gap-x-3 gap-y-5">
                 {SHARE_OPTIONS.map((opt) => (
                   <a
                     key={opt.id}
@@ -264,13 +275,6 @@ export function ShareMenu({ url, title, variant = "dots" }: ShareMenuProps) {
                 </button>
               </div>
 
-              {/* Cancel button */}
-              <button
-                onClick={handleClose}
-                className="mt-4 w-full rounded-xl bg-gray-100 py-3 text-sm font-semibold text-gray-700 transition-colors hover:bg-gray-200"
-              >
-                Cancel
-              </button>
             </div>
           </div>
         </>,
