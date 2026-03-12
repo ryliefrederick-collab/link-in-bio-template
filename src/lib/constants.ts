@@ -38,7 +38,7 @@ export const DEFAULT_COLORS: ColorPalette = {
 };
 
 export const DEFAULT_FONTS: FontPairing = {
-  heading: '"The Seasons", serif',
+  heading: '"Neue Montreal", sans-serif',
   body: '"Neue Montreal", sans-serif',
 };
 
