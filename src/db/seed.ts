@@ -1,93 +1,116 @@
-import Database from "better-sqlite3";
-import { drizzle } from "drizzle-orm/better-sqlite3";
+import { createClient } from "@libsql/client";
+import { drizzle } from "drizzle-orm/libsql";
 import { links, siteSettings } from "./schema";
-import path from "path";
 import fs from "fs";
+import path from "path";
 
-const dbDir = path.resolve(process.cwd(), "data");
-if (!fs.existsSync(dbDir)) {
-  fs.mkdirSync(dbDir, { recursive: true });
+// Load .env.local for local development
+const envPath = path.resolve(process.cwd(), ".env.local");
+if (fs.existsSync(envPath)) {
+  const lines = fs.readFileSync(envPath, "utf-8").split("\n");
+  for (const line of lines) {
+    const trimmed = line.trim();
+    if (!trimmed || trimmed.startsWith("#")) continue;
+    const eqIdx = trimmed.indexOf("=");
+    if (eqIdx === -1) continue;
+    const key = trimmed.slice(0, eqIdx).trim();
+    const val = trimmed.slice(eqIdx + 1).trim().replace(/^["']|["']$/g, "");
+    if (!process.env[key]) process.env[key] = val;
+  }
 }
 
-const dbPath = path.resolve(dbDir, "linkinbio.db");
-const sqlite = new Database(dbPath);
-sqlite.pragma("journal_mode = WAL");
-sqlite.pragma("foreign_keys = ON");
+// Use local SQLite file if no Turso URL is set (great for local preview)
+const url = process.env.TURSO_DATABASE_URL ?? "file:./data/linkinbio.db";
+const authToken = process.env.TURSO_AUTH_TOKEN;
 
-const db = drizzle(sqlite);
+if (url.startsWith("file:")) {
+  const dbDir = path.resolve(process.cwd(), "data");
+  if (!fs.existsSync(dbDir)) fs.mkdirSync(dbDir, { recursive: true });
+  console.log("🗄  Using local SQLite file (no Turso credentials found).");
+} else {
+  console.log("☁️  Using Turso cloud database.");
+}
 
-// Create tables
-sqlite.exec(`
-  CREATE TABLE IF NOT EXISTS links (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    title TEXT NOT NULL,
-    url TEXT NOT NULL,
-    category TEXT NOT NULL CHECK(category IN ('campaign', 'evergreen', 'social')),
-    sort_order INTEGER NOT NULL DEFAULT 0,
-    is_visible INTEGER NOT NULL DEFAULT 1,
-    scheduled_start TEXT,
-    auto_hide_days INTEGER,
-    manual_override INTEGER,
-    emoji TEXT,
-    social_platform TEXT,
-    thumbnail_url TEXT,
-    campaign_tag TEXT,
-    created_at TEXT NOT NULL DEFAULT (datetime('now')),
-    updated_at TEXT NOT NULL DEFAULT (datetime('now'))
-  );
+const client = createClient({ url, authToken });
+const db = drizzle(client);
 
-  CREATE TABLE IF NOT EXISTS link_clicks (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    link_id INTEGER NOT NULL REFERENCES links(id) ON DELETE CASCADE,
-    clicked_at TEXT NOT NULL DEFAULT (datetime('now')),
-    referrer TEXT,
-    user_agent TEXT,
-    device_type TEXT,
-    country TEXT,
-    city TEXT,
-    campaign_tag TEXT
-  );
+async function main() {
+  // Create tables
+  await client.execute(`
+    CREATE TABLE IF NOT EXISTS links (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      title TEXT NOT NULL,
+      url TEXT NOT NULL,
+      category TEXT NOT NULL CHECK(category IN ('campaign', 'evergreen', 'social')),
+      sort_order INTEGER NOT NULL DEFAULT 0,
+      is_visible INTEGER NOT NULL DEFAULT 1,
+      scheduled_start TEXT,
+      auto_hide_days INTEGER,
+      manual_override INTEGER,
+      emoji TEXT,
+      social_platform TEXT,
+      thumbnail_url TEXT,
+      campaign_tag TEXT,
+      created_at TEXT NOT NULL DEFAULT (datetime('now')),
+      updated_at TEXT NOT NULL DEFAULT (datetime('now'))
+    )
+  `);
 
-  CREATE TABLE IF NOT EXISTS page_visits (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    visited_at TEXT NOT NULL DEFAULT (datetime('now')),
-    referrer TEXT,
-    user_agent TEXT,
-    device_type TEXT,
-    country TEXT,
-    city TEXT
-  );
+  await client.execute(`
+    CREATE TABLE IF NOT EXISTS link_clicks (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      link_id INTEGER NOT NULL REFERENCES links(id) ON DELETE CASCADE,
+      clicked_at TEXT NOT NULL DEFAULT (datetime('now')),
+      referrer TEXT,
+      user_agent TEXT,
+      device_type TEXT,
+      country TEXT,
+      city TEXT,
+      campaign_tag TEXT
+    )
+  `);
 
-  CREATE TABLE IF NOT EXISTS earnings (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    platform TEXT NOT NULL,
-    amount REAL NOT NULL,
-    earned_date TEXT NOT NULL,
-    note TEXT,
-    created_at TEXT NOT NULL DEFAULT (datetime('now'))
-  );
+  await client.execute(`
+    CREATE TABLE IF NOT EXISTS page_visits (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      visited_at TEXT NOT NULL DEFAULT (datetime('now')),
+      referrer TEXT,
+      user_agent TEXT,
+      device_type TEXT,
+      country TEXT,
+      city TEXT
+    )
+  `);
 
-  CREATE TABLE IF NOT EXISTS site_settings (
-    id INTEGER PRIMARY KEY DEFAULT 1,
-    profile_name TEXT NOT NULL DEFAULT '',
-    profile_bio TEXT NOT NULL DEFAULT '',
-    profile_image_url TEXT,
-    color_palette TEXT NOT NULL DEFAULT '{}',
-    font_pairing TEXT NOT NULL DEFAULT '{}',
-    button_style TEXT NOT NULL DEFAULT '{}',
-    theme_preset TEXT NOT NULL DEFAULT 'default',
-    updated_at TEXT NOT NULL DEFAULT (datetime('now'))
-  );
-`);
+  await client.execute(`
+    CREATE TABLE IF NOT EXISTS earnings (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      platform TEXT NOT NULL,
+      amount REAL NOT NULL,
+      earned_date TEXT NOT NULL,
+      note TEXT,
+      created_at TEXT NOT NULL DEFAULT (datetime('now'))
+    )
+  `);
 
-// Seed site settings
-const existingSettings = sqlite
-  .prepare("SELECT id FROM site_settings WHERE id = 1")
-  .get();
+  await client.execute(`
+    CREATE TABLE IF NOT EXISTS site_settings (
+      id INTEGER PRIMARY KEY DEFAULT 1,
+      profile_name TEXT NOT NULL DEFAULT '',
+      profile_bio TEXT NOT NULL DEFAULT '',
+      profile_image_url TEXT,
+      color_palette TEXT NOT NULL DEFAULT '{}',
+      font_pairing TEXT NOT NULL DEFAULT '{}',
+      button_style TEXT NOT NULL DEFAULT '{}',
+      theme_preset TEXT NOT NULL DEFAULT 'default',
+      updated_at TEXT NOT NULL DEFAULT (datetime('now'))
+    )
+  `);
 
-if (!existingSettings) {
-  db.insert(siteSettings)
-    .values({
+  // Seed site settings
+  const existingSettings = await db.select().from(siteSettings).limit(1);
+  if (existingSettings.length === 0) {
+    await db.insert(siteSettings).values({
       id: 1,
       profileName: "Your Name",
       profileBio: "Creator, storyteller, link curator.",
@@ -108,7 +131,7 @@ if (!existingSettings) {
         subtitleColor: "#a01717",
       }),
       fontPairing: JSON.stringify({
-        heading: '"The Seasons", serif',
+        heading: '"Neue Montreal", sans-serif',
         body: '"Neue Montreal", sans-serif',
       }),
       buttonStyle: JSON.stringify({
@@ -117,18 +140,15 @@ if (!existingSettings) {
         hoverEffect: "lift",
       }),
       themePreset: "default",
-    })
-    .run();
-  console.log("✓ Seeded site settings");
-}
+    });
+    console.log("✓ Seeded site settings");
+  }
 
-// Seed sample links
-const existingLinks = sqlite.prepare("SELECT COUNT(*) as count FROM links").get() as { count: number };
-
-if (existingLinks.count === 0) {
-  // Campaign links
-  db.insert(links)
-    .values([
+  // Seed sample links
+  const existingLinks = await db.select().from(links).limit(1);
+  if (existingLinks.length === 0) {
+    // Campaign links (auto-expiring)
+    await db.insert(links).values([
       {
         title: "My Favorite Skillet",
         url: "https://example.com/skillet",
@@ -151,12 +171,10 @@ if (existingLinks.count === 0) {
         emoji: "🌿",
         campaignTag: "summer-skincare-routine",
       },
-    ])
-    .run();
+    ]);
 
-  // Evergreen links
-  db.insert(links)
-    .values([
+    // Evergreen links
+    await db.insert(links).values([
       {
         title: "Shop My Favorites",
         url: "https://example.com/favorites",
@@ -178,12 +196,10 @@ if (existingLinks.count === 0) {
         sortOrder: 2,
         isVisible: true,
       },
-    ])
-    .run();
+    ]);
 
-  // Social links
-  db.insert(links)
-    .values([
+    // Social icons
+    await db.insert(links).values([
       {
         title: "TikTok",
         url: "https://tiktok.com/@yourname",
@@ -216,11 +232,16 @@ if (existingLinks.count === 0) {
         isVisible: true,
         socialPlatform: "pinterest",
       },
-    ])
-    .run();
+    ]);
 
-  console.log("✓ Seeded sample links");
+    console.log("✓ Seeded sample links");
+  }
+
+  client.close();
+  console.log("✓ Database seeded successfully");
 }
 
-sqlite.close();
-console.log("✓ Database seeded successfully");
+main().catch((err) => {
+  console.error("❌ Seed failed:", err);
+  process.exit(1);
+});
