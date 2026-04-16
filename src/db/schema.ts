@@ -1,21 +1,29 @@
-import { sqliteTable, text, integer, real } from "drizzle-orm/sqlite-core";
+import {
+  pgTable,
+  serial,
+  integer,
+  text,
+  boolean,
+  doublePrecision,
+  timestamp,
+} from "drizzle-orm/pg-core";
 import { sql } from "drizzle-orm";
 
 // ─── LINKS TABLE ───────────────────────────────────────────────
-export const links = sqliteTable("links", {
-  id: integer("id").primaryKey({ autoIncrement: true }),
+export const links = pgTable("links", {
+  id: serial("id").primaryKey(),
   title: text("title").notNull(),
   url: text("url").notNull(),
   category: text("category", {
     enum: ["campaign", "evergreen", "social"],
   }).notNull(),
   sortOrder: integer("sort_order").notNull().default(0),
-  isVisible: integer("is_visible", { mode: "boolean" }).notNull().default(true),
-  // Campaign-specific fields
+  isVisible: boolean("is_visible").notNull().default(true),
+  // Campaign-specific fields (user-supplied ISO strings)
   scheduledStart: text("scheduled_start"),
   autoHideDays: integer("auto_hide_days"),
   // Manual override: null = follow schedule, true = force show, false = force hide
-  manualOverride: integer("manual_override", { mode: "boolean" }),
+  manualOverride: boolean("manual_override"),
   // Campaign-specific emoji displayed beside the title
   emoji: text("emoji"),
   // Social-specific: platform identifier for icon lookup
@@ -23,23 +31,23 @@ export const links = sqliteTable("links", {
   thumbnailUrl: text("thumbnail_url"),
   // Internal campaign tag for analytics
   campaignTag: text("campaign_tag"),
-  createdAt: text("created_at")
+  createdAt: timestamp("created_at", { withTimezone: true, mode: "string" })
     .notNull()
-    .default(sql`(datetime('now'))`),
-  updatedAt: text("updated_at")
+    .defaultNow(),
+  updatedAt: timestamp("updated_at", { withTimezone: true, mode: "string" })
     .notNull()
-    .default(sql`(datetime('now'))`),
+    .defaultNow(),
 });
 
 // ─── LINK CLICKS TABLE ────────────────────────────────────────
-export const linkClicks = sqliteTable("link_clicks", {
-  id: integer("id").primaryKey({ autoIncrement: true }),
+export const linkClicks = pgTable("link_clicks", {
+  id: serial("id").primaryKey(),
   linkId: integer("link_id")
     .notNull()
     .references(() => links.id, { onDelete: "cascade" }),
-  clickedAt: text("clicked_at")
+  clickedAt: timestamp("clicked_at", { withTimezone: true, mode: "string" })
     .notNull()
-    .default(sql`(datetime('now'))`),
+    .defaultNow(),
   referrer: text("referrer"),
   userAgent: text("user_agent"),
   deviceType: text("device_type"),
@@ -49,11 +57,11 @@ export const linkClicks = sqliteTable("link_clicks", {
 });
 
 // ─── PAGE VISITS TABLE ────────────────────────────────────────
-export const pageVisits = sqliteTable("page_visits", {
-  id: integer("id").primaryKey({ autoIncrement: true }),
-  visitedAt: text("visited_at")
+export const pageVisits = pgTable("page_visits", {
+  id: serial("id").primaryKey(),
+  visitedAt: timestamp("visited_at", { withTimezone: true, mode: "string" })
     .notNull()
-    .default(sql`(datetime('now'))`),
+    .defaultNow(),
   referrer: text("referrer"),
   userAgent: text("user_agent"),
   deviceType: text("device_type"),
@@ -62,19 +70,20 @@ export const pageVisits = sqliteTable("page_visits", {
 });
 
 // ─── EARNINGS TABLE ───────────────────────────────────────────
-export const earnings = sqliteTable("earnings", {
-  id: integer("id").primaryKey({ autoIncrement: true }),
+export const earnings = pgTable("earnings", {
+  id: serial("id").primaryKey(),
   platform: text("platform").notNull(),
-  amount: real("amount").notNull(),
+  amount: doublePrecision("amount").notNull(),
   earnedDate: text("earned_date").notNull(),
   note: text("note"),
-  createdAt: text("created_at")
+  createdAt: timestamp("created_at", { withTimezone: true, mode: "string" })
     .notNull()
-    .default(sql`(datetime('now'))`),
+    .defaultNow(),
 });
 
 // ─── SITE SETTINGS TABLE ──────────────────────────────────────
-export const siteSettings = sqliteTable("site_settings", {
+// id fixed to 1 (single-row settings). Not serial — callers insert id: 1.
+export const siteSettings = pgTable("site_settings", {
   id: integer("id").primaryKey().default(1),
   profileName: text("profile_name").notNull().default(""),
   profileBio: text("profile_bio").notNull().default(""),
@@ -85,7 +94,10 @@ export const siteSettings = sqliteTable("site_settings", {
   themePreset: text("theme_preset").notNull().default("default"),
   passwordHash: text("password_hash"),
   sessionSecret: text("session_secret"),
-  updatedAt: text("updated_at")
+  updatedAt: timestamp("updated_at", { withTimezone: true, mode: "string" })
     .notNull()
-    .default(sql`(datetime('now'))`),
+    .defaultNow(),
 });
+
+// Keep sql import referenced for consumers that still use it via re-export patterns
+export { sql };

@@ -62,13 +62,15 @@ export async function getClicksByDay(period: string, linkId?: number) {
 
   return db
     .select({
-      date: sql<string>`date(${linkClicks.clickedAt})`.as("date"),
+      date: sql<string>`to_char(${linkClicks.clickedAt}, 'YYYY-MM-DD')`.as(
+        "date",
+      ),
       count: count(),
     })
     .from(linkClicks)
     .where(conditions)
-    .groupBy(sql`date(${linkClicks.clickedAt})`)
-    .orderBy(sql`date(${linkClicks.clickedAt}) ASC`);
+    .groupBy(sql`to_char(${linkClicks.clickedAt}, 'YYYY-MM-DD')`)
+    .orderBy(sql`to_char(${linkClicks.clickedAt}, 'YYYY-MM-DD') ASC`);
 }
 
 export async function getVisitsByDay(period: string) {
@@ -76,13 +78,15 @@ export async function getVisitsByDay(period: string) {
 
   return db
     .select({
-      date: sql<string>`date(${pageVisits.visitedAt})`.as("date"),
+      date: sql<string>`to_char(${pageVisits.visitedAt}, 'YYYY-MM-DD')`.as(
+        "date",
+      ),
       count: count(),
     })
     .from(pageVisits)
     .where(gte(pageVisits.visitedAt, startDate))
-    .groupBy(sql`date(${pageVisits.visitedAt})`)
-    .orderBy(sql`date(${pageVisits.visitedAt}) ASC`);
+    .groupBy(sql`to_char(${pageVisits.visitedAt}, 'YYYY-MM-DD')`)
+    .orderBy(sql`to_char(${pageVisits.visitedAt}, 'YYYY-MM-DD') ASC`);
 }
 
 export async function getDeviceBreakdown(period: string) {

@@ -1,5 +1,5 @@
-import { createClient } from "@libsql/client";
-import { drizzle } from "drizzle-orm/libsql";
+import { neon } from "@neondatabase/serverless";
+import { drizzle } from "drizzle-orm/neon-http";
 import { links, siteSettings } from "./schema";
 import fs from "fs";
 import path from "path";
@@ -14,53 +14,56 @@ if (fs.existsSync(envPath)) {
     const eqIdx = trimmed.indexOf("=");
     if (eqIdx === -1) continue;
     const key = trimmed.slice(0, eqIdx).trim();
-    const val = trimmed.slice(eqIdx + 1).trim().replace(/^["']|["']$/g, "");
+    const val = trimmed
+      .slice(eqIdx + 1)
+      .trim()
+      .replace(/^["']|["']$/g, "");
     if (!process.env[key]) process.env[key] = val;
   }
 }
 
-// Use local SQLite file if no Turso URL is set (great for local preview)
-const url = process.env.TURSO_DATABASE_URL ?? "file:./data/linkinbio.db";
-const authToken = process.env.TURSO_AUTH_TOKEN;
+const connectionString =
+  process.env.DATABASE_URL ?? process.env.POSTGRES_URL;
 
-if (url.startsWith("file:")) {
-  const dbDir = path.resolve(process.cwd(), "data");
-  if (!fs.existsSync(dbDir)) fs.mkdirSync(dbDir, { recursive: true });
-  console.log("🗄  Using local SQLite file (no Turso credentials found).");
-} else {
-  console.log("☁️  Using Turso cloud database.");
+if (!connectionString) {
+  console.error(
+    "❌ DATABASE_URL is not set. Add it to .env.local (or run via Vercel env).",
+  );
+  process.exit(1);
 }
 
-const client = createClient({ url, authToken });
+console.log("☁️  Connecting to Neon Postgres…");
+
+const client = neon(connectionString);
 const db = drizzle(client);
 
 async function main() {
-  // Create tables
-  await client.execute(`
+  // Create tables (idempotent — safe to rerun)
+  await client(`
     CREATE TABLE IF NOT EXISTS links (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      id SERIAL PRIMARY KEY,
       title TEXT NOT NULL,
       url TEXT NOT NULL,
-      category TEXT NOT NULL CHECK(category IN ('campaign', 'evergreen', 'social')),
+      category TEXT NOT NULL CHECK (category IN ('campaign', 'evergreen', 'social')),
       sort_order INTEGER NOT NULL DEFAULT 0,
-      is_visible INTEGER NOT NULL DEFAULT 1,
+      is_visible BOOLEAN NOT NULL DEFAULT TRUE,
       scheduled_start TEXT,
       auto_hide_days INTEGER,
-      manual_override INTEGER,
+      manual_override BOOLEAN,
       emoji TEXT,
       social_platform TEXT,
       thumbnail_url TEXT,
       campaign_tag TEXT,
-      created_at TEXT NOT NULL DEFAULT (datetime('now')),
-      updated_at TEXT NOT NULL DEFAULT (datetime('now'))
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
     )
   `);
 
-  await client.execute(`
+  await client(`
     CREATE TABLE IF NOT EXISTS link_clicks (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      id SERIAL PRIMARY KEY,
       link_id INTEGER NOT NULL REFERENCES links(id) ON DELETE CASCADE,
-      clicked_at TEXT NOT NULL DEFAULT (datetime('now')),
+      clicked_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
       referrer TEXT,
       user_agent TEXT,
       device_type TEXT,
@@ -70,10 +73,10 @@ async function main() {
     )
   `);
 
-  await client.execute(`
+  await client(`
     CREATE TABLE IF NOT EXISTS page_visits (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      visited_at TEXT NOT NULL DEFAULT (datetime('now')),
+      id SERIAL PRIMARY KEY,
+      visited_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
       referrer TEXT,
       user_agent TEXT,
       device_type TEXT,
@@ -82,18 +85,18 @@ async function main() {
     )
   `);
 
-  await client.execute(`
+  await client(`
     CREATE TABLE IF NOT EXISTS earnings (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      id SERIAL PRIMARY KEY,
       platform TEXT NOT NULL,
-      amount REAL NOT NULL,
+      amount DOUBLE PRECISION NOT NULL,
       earned_date TEXT NOT NULL,
       note TEXT,
-      created_at TEXT NOT NULL DEFAULT (datetime('now'))
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
     )
   `);
 
-  await client.execute(`
+  await client(`
     CREATE TABLE IF NOT EXISTS site_settings (
       id INTEGER PRIMARY KEY DEFAULT 1,
       profile_name TEXT NOT NULL DEFAULT '',
@@ -105,7 +108,7 @@ async function main() {
       theme_preset TEXT NOT NULL DEFAULT 'default',
       password_hash TEXT,
       session_secret TEXT,
-      updated_at TEXT NOT NULL DEFAULT (datetime('now'))
+      updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
     )
   `);
 
@@ -239,7 +242,6 @@ async function main() {
     console.log("✓ Seeded sample links");
   }
 
-  client.close();
   console.log("✓ Database seeded successfully");
 }
 
