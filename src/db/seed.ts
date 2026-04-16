@@ -103,6 +103,8 @@ async function main() {
       font_pairing TEXT NOT NULL DEFAULT '{}',
       button_style TEXT NOT NULL DEFAULT '{}',
       theme_preset TEXT NOT NULL DEFAULT 'default',
+      password_hash TEXT,
+      session_secret TEXT,
       updated_at TEXT NOT NULL DEFAULT (datetime('now'))
     )
   `);

@@ -3,45 +3,62 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 
-export default function LoginPage() {
+export default function SetupPage() {
+  const router = useRouter();
   const [password, setPassword] = useState("");
+  const [confirm, setConfirm] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
-  const router = useRouter();
+  const [checking, setChecking] = useState(true);
 
   useEffect(() => {
     fetch("/api/auth/status")
       .then((r) => r.json())
       .then((data) => {
-        if (!data.isSetup) router.replace("/setup");
+        if (data.isSetup) {
+          router.replace("/login");
+        } else {
+          setChecking(false);
+        }
       })
-      .catch(() => {});
+      .catch(() => setChecking(false));
   }, [router]);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    setLoading(true);
     setError("");
-
-    const res = await fetch("/api/auth/login", {
+    if (password.length < 8) {
+      setError("Password must be at least 8 characters.");
+      return;
+    }
+    if (password !== confirm) {
+      setError("Passwords don't match.");
+      return;
+    }
+    setLoading(true);
+    const res = await fetch("/api/auth/setup", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ password }),
     });
-
     if (res.ok) {
       router.push("/dashboard");
-    } else if (res.status === 409) {
-      router.replace("/setup");
     } else {
-      setError("Incorrect password.");
+      const data = await res.json().catch(() => ({}));
+      setError(data.error || "Setup failed.");
       setLoading(false);
     }
   }
 
+  if (checking) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-gray-50" />
+    );
+  }
+
   return (
     <div
-      className="flex min-h-screen items-center justify-center bg-gray-50"
+      className="flex min-h-screen items-center justify-center bg-gray-50 px-4"
       style={{ fontFamily: '"DM Sans", sans-serif' }}
     >
       <div className="w-full max-w-sm rounded-2xl border border-gray-200 bg-white p-8 shadow-sm">
@@ -50,9 +67,11 @@ export default function LoginPage() {
             className="mb-1 text-2xl font-bold text-gray-900"
             style={{ fontFamily: '"Playfair Display", serif' }}
           >
-            LinkBio
+            Welcome
           </h1>
-          <p className="text-sm text-gray-500">Sign in to your dashboard</p>
+          <p className="text-sm text-gray-500">
+            Set a password to secure your dashboard.
+          </p>
         </div>
 
         <form onSubmit={handleSubmit} className="flex flex-col gap-4">
@@ -61,7 +80,7 @@ export default function LoginPage() {
               htmlFor="password"
               className="mb-1 block text-sm font-medium text-gray-700"
             >
-              Password
+              New password
             </label>
             <input
               id="password"
@@ -70,8 +89,26 @@ export default function LoginPage() {
               onChange={(e) => setPassword(e.target.value)}
               required
               autoFocus
+              minLength={8}
               className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-900 outline-none transition-colors focus:border-amber-500 focus:ring-2 focus:ring-amber-100"
-              placeholder="Enter password"
+              placeholder="At least 8 characters"
+            />
+          </div>
+          <div>
+            <label
+              htmlFor="confirm"
+              className="mb-1 block text-sm font-medium text-gray-700"
+            >
+              Confirm password
+            </label>
+            <input
+              id="confirm"
+              type="password"
+              value={confirm}
+              onChange={(e) => setConfirm(e.target.value)}
+              required
+              minLength={8}
+              className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-900 outline-none transition-colors focus:border-amber-500 focus:ring-2 focus:ring-amber-100"
             />
           </div>
 
@@ -79,10 +116,10 @@ export default function LoginPage() {
 
           <button
             type="submit"
-            disabled={loading || !password}
+            disabled={loading || !password || !confirm}
             className="w-full rounded-lg bg-gray-900 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-gray-800 disabled:cursor-not-allowed disabled:opacity-50"
           >
-            {loading ? "Signing in…" : "Sign in"}
+            {loading ? "Creating account…" : "Create account"}
           </button>
         </form>
       </div>

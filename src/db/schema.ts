@@ -83,6 +83,8 @@ export const siteSettings = sqliteTable("site_settings", {
   fontPairing: text("font_pairing").notNull().default("{}"),
   buttonStyle: text("button_style").notNull().default("{}"),
   themePreset: text("theme_preset").notNull().default("default"),
+  passwordHash: text("password_hash"),
+  sessionSecret: text("session_secret"),
   updatedAt: text("updated_at")
     .notNull()
     .default(sql`(datetime('now'))`),

@@ -1,135 +1,80 @@
-# LinkIt — Link-in-Bio Template
+# Link in Bio Template
 
-A fully custom, self-hosted link-in-bio page built with Next.js, Tailwind CSS, and Turso (cloud SQLite). Manage all your links, track analytics, and log earnings from a password-protected dashboard — no monthly SaaS fees.
+A beautiful, customizable link-in-bio page with a built-in dashboard for managing links, tracking analytics, and customizing your theme. Built with Next.js, Tailwind CSS, and Turso.
 
-**Live demo:** [rylie-frederick.vercel.app](https://rylie-frederick.vercel.app)
+**Features:**
+- Drag-and-drop link management (campaigns, evergreen, social)
+- Real-time analytics (page visits, link clicks)
+- Fully customizable theme (colors, fonts, button styles)
+- Profile image upload
+- Earnings tracker
+- Password-protected dashboard
+- One-click deploy to Vercel
 
 ---
 
-## Features
+## Deploy Your Own
 
-- **Campaign links** — Emoji-tagged links that auto-expire after a set number of days (perfect for sponsored posts and limited-time promos)
-- **Evergreen links** — Permanent links like your Amazon Storefront, portfolio, and collab page
-- **Social icons row** — TikTok, Instagram, YouTube, Pinterest, and more
-- **Share buttons** — Every link has a built-in share menu (SMS, Email, WhatsApp, X, Facebook, Copy Link), plus a profile share button in the top corner
-- **Analytics dashboard** — Track page visits and link clicks with charts
-- **Earnings tracker** — Log and visualize income by platform
-- **Drag-and-drop link reordering** — Rearrange links from the dashboard
-- **Full theme customization** — Colors, fonts, and button styles via the dashboard
-- **Password-protected dashboard** — Secure access to all management features
-- **Self-hosted & free to run** — Deploy on Vercel + Turso free tier, no recurring SaaS costs
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2Fryliefrederick-collab%2Flink-in-bio-template&project-name=linkbio&repository-name=linkbio&stores=%5B%7B%22type%22%3A%22integration%22%2C%22integrationSlug%22%3A%22tursocloud%22%2C%22productSlug%22%3A%22database%22%2C%22protocol%22%3A%22storage%22%7D%5D)
+
+Click the button. Vercel walks you through:
+
+1. **Sign in** (or sign up — free)
+2. **Authorize GitHub** — Vercel forks the repo into your account
+3. **Add Turso database** — Vercel auto-provisions a free Turso database and injects the credentials for you. No separate Turso account, no tokens to copy.
+4. **Deploy** — wait ~60 seconds.
+5. **Visit your site** → you'll land on `/setup` to pick your dashboard password. Done.
+
+No environment variables to type. No `openssl` commands. No database setup.
+
+---
+
+## What's included
+
+- `/` — your public link-in-bio page
+- `/setup` — first-run password setup (auto-redirected on first visit)
+- `/login` — dashboard sign-in
+- `/dashboard` — manage links, customize theme, view analytics, track earnings
+
+---
+
+## Power User: Claude Code Setup
+
+If you have [Claude Code](https://claude.ai/claude-code) installed, you can use the interactive setup prompt for a guided experience:
+
+1. Clone this repo locally
+2. Open the project in your terminal
+3. Run `claude` to start Claude Code
+4. Copy and paste the contents of `SETUP_PROMPT.md`
+5. Claude will walk you through everything: database setup, configuration, and deployment
+
+---
+
+## Local Development
+
+```bash
+# Install dependencies
+npm install
+
+# Copy env template and fill in your values
+cp .env.example .env.local
+
+# Push database schema to Turso
+npm run db:push
+
+# Start dev server
+npm run dev
+```
+
+Visit [http://localhost:3000](http://localhost:3000) for the public page and [http://localhost:3000/dashboard](http://localhost:3000/dashboard) for the admin dashboard.
 
 ---
 
 ## Tech Stack
 
-| Layer | Technology |
-|---|---|
-| Framework | Next.js 16 (App Router) |
-| Styling | Tailwind CSS v4 |
-| Database | Turso (cloud SQLite via libsql) |
-| ORM | Drizzle ORM |
-| Hosting | Vercel |
-| Drag & Drop | @dnd-kit |
-| Charts | Recharts |
-
----
-
-## Setup
-
-### 1. Clone the repo
-
-```bash
-git clone https://github.com/ryliefrederick-collab/link-in-bio.git
-cd link-in-bio
-npm install
-```
-
-### 2. Create a Turso database
-
-1. Sign up free at [turso.tech](https://turso.tech)
-2. Install the Turso CLI: `curl -sSfL https://get.tur.so/install.sh | bash`
-3. Create a database: `turso db create linkit`
-4. Get your URL: `turso db show linkit --url`
-5. Get your token: `turso db tokens create linkit`
-
-### 3. Configure environment variables
-
-Copy `.env.example` to `.env.local` and fill in your values:
-
-```bash
-cp .env.example .env.local
-```
-
-```env
-# Turso (required for production)
-TURSO_DATABASE_URL=libsql://your-db-name.turso.io
-TURSO_AUTH_TOKEN=your-token-here
-
-# Dashboard login password
-DASHBOARD_PASSWORD=your-secure-password
-
-# Any random 32+ character string for session signing
-SESSION_SECRET=your-random-secret-here
-```
-
-### 4. Seed the database
-
-```bash
-npm run db:seed
-```
-
-This creates all tables and populates them with sample links. If `TURSO_DATABASE_URL` is not set, it falls back to a local SQLite file at `data/linkinbio.db` — useful for previewing locally before setting up Turso.
-
-### 5. Run the dev server
-
-```bash
-npm run dev
-```
-
-Open [http://localhost:3000](http://localhost:3000) to see your link page.
-Open [http://localhost:3000/dashboard](http://localhost:3000/dashboard) to access the dashboard (use the password from `DASHBOARD_PASSWORD`).
-
----
-
-## Customization
-
-Everything is customizable from the dashboard at `/dashboard/customize`:
-
-- **Profile** — Name, bio, and profile photo
-- **Colors** — Background, button color, text colors, campaign card style
-- **Fonts** — Heading and body font pairings
-- **Button style** — Border radius, shadow, hover effect
-
-To add or edit links, go to `/dashboard/links`.
-
----
-
-## Deploying to Vercel
-
-1. Push your repo to GitHub
-2. Import the project at [vercel.com/new](https://vercel.com/new)
-3. Add your environment variables in the Vercel project settings:
-   - `TURSO_DATABASE_URL`
-   - `TURSO_AUTH_TOKEN`
-   - `DASHBOARD_PASSWORD`
-   - `SESSION_SECRET`
-4. Deploy — Vercel auto-deploys on every push to `main`
-
----
-
-## Dashboard
-
-| Page | URL | Description |
-|---|---|---|
-| Overview | `/dashboard` | Quick stats summary |
-| Links | `/dashboard/links` | Add, edit, reorder, and toggle links |
-| Analytics | `/dashboard/analytics` | Page visits and click charts |
-| Earnings | `/dashboard/earnings` | Log and track income by platform |
-| Customize | `/dashboard/customize` | Theme, colors, fonts, profile |
-
----
-
-## License
-
-This template is for personal use only. You may not resell or redistribute this code.
+- [Next.js 16](https://nextjs.org/) (App Router, Turbopack)
+- [React 19](https://react.dev/)
+- [Tailwind CSS v4](https://tailwindcss.com/)
+- [Drizzle ORM](https://orm.drizzle.team/) + [Turso](https://turso.tech/) (cloud SQLite)
+- [Recharts](https://recharts.org/) (analytics charts)
+- [@dnd-kit](https://dndkit.com/) (drag-and-drop)

@@ -8,7 +8,6 @@ import { CampaignLinkCard } from "@/components/public/CampaignLinkCard";
 import { EvergreenLinkCard } from "@/components/public/EvergreenLinkCard";
 import { SocialIconRow } from "@/components/public/SocialIconRow";
 import { LinkTracker } from "@/components/public/LinkTracker";
-import { ProfileShareButton } from "@/components/public/ProfileShareButton";
 import type { Link, SiteSettings } from "@/types";
 
 export const dynamic = "force-dynamic";
@@ -59,6 +58,8 @@ export default async function BioPage() {
     fontPairing: "{}",
     buttonStyle: "{}",
     themePreset: "default",
+    passwordHash: null,
+    sessionSecret: null,
     updatedAt: new Date().toISOString(),
   };
 
@@ -68,11 +69,6 @@ export default async function BioPage() {
         className="mx-auto flex min-h-screen max-w-md flex-col items-center px-5 py-10"
         style={themeStyle}
       >
-        {/* Profile share button — top-right, aligned with button edges */}
-        <div className="flex w-full justify-end -mt-2 mb-1">
-          <ProfileShareButton profileName={(settings || defaultSettings).profileName || "LinkIt"} />
-        </div>
-
         {/* Profile Header */}
         <ProfileHeader settings={settings || defaultSettings} />
 
