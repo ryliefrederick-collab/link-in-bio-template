@@ -39,7 +39,7 @@ const db = drizzle(client);
 
 async function main() {
   // Create tables (idempotent — safe to rerun)
-  await client(`
+  await client.query(`
     CREATE TABLE IF NOT EXISTS links (
       id SERIAL PRIMARY KEY,
       title TEXT NOT NULL,
@@ -59,7 +59,7 @@ async function main() {
     )
   `);
 
-  await client(`
+  await client.query(`
     CREATE TABLE IF NOT EXISTS link_clicks (
       id SERIAL PRIMARY KEY,
       link_id INTEGER NOT NULL REFERENCES links(id) ON DELETE CASCADE,
@@ -73,7 +73,7 @@ async function main() {
     )
   `);
 
-  await client(`
+  await client.query(`
     CREATE TABLE IF NOT EXISTS page_visits (
       id SERIAL PRIMARY KEY,
       visited_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
@@ -85,7 +85,7 @@ async function main() {
     )
   `);
 
-  await client(`
+  await client.query(`
     CREATE TABLE IF NOT EXISTS earnings (
       id SERIAL PRIMARY KEY,
       platform TEXT NOT NULL,
@@ -96,7 +96,7 @@ async function main() {
     )
   `);
 
-  await client(`
+  await client.query(`
     CREATE TABLE IF NOT EXISTS site_settings (
       id INTEGER PRIMARY KEY DEFAULT 1,
       profile_name TEXT NOT NULL DEFAULT '',
