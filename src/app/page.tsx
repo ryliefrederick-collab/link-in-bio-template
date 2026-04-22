@@ -37,17 +37,11 @@ export default async function BioPage() {
     (l: Link) => l.category === "social"
   );
 
-  // Generate theme CSS variables from settings
-  const themeStyle = settings
-    ? Object.fromEntries(
-        generateCssVariables(settings)
-          .split("; ")
-          .map((s) => {
-            const [key, ...rest] = s.split(": ");
-            return [key.trim(), rest.join(": ").trim()];
-          })
-      )
-    : undefined;
+  // Generate theme CSS variables from settings, scoped to :root so
+  // they override the globals.css defaults (including `body` background).
+  const themeCss = settings
+    ? `:root { ${generateCssVariables(settings)} }`
+    : null;
 
   const defaultSettings: SiteSettings = {
     id: 1,
@@ -65,10 +59,8 @@ export default async function BioPage() {
 
   return (
     <LinkTracker>
-      <main
-        className="mx-auto flex min-h-screen max-w-md flex-col items-center px-5 py-10"
-        style={themeStyle}
-      >
+      {themeCss && <style dangerouslySetInnerHTML={{ __html: themeCss }} />}
+      <main className="mx-auto flex min-h-screen max-w-md flex-col items-center px-5 py-10">
         {/* Profile Header */}
         <ProfileHeader settings={settings || defaultSettings} />
 
