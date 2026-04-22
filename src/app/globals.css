@@ -1,62 +1,5 @@
 @import "tailwindcss";
 
-/* ─── Custom Font Faces ─────────────────────────────────── */
-@font-face {
-  font-family: "TRT Unamo";
-  src: url("/fonts/TRTunamoDEMO-Regular.ttf") format("truetype");
-  font-weight: 400;
-  font-style: normal;
-  font-display: swap;
-}
-
-@font-face {
-  font-family: "TRT Unamo";
-  src: url("/fonts/TRTunamoDEMO-Bold.ttf") format("truetype");
-  font-weight: 700;
-  font-style: normal;
-  font-display: swap;
-}
-
-@font-face {
-  font-family: "The Seasons";
-  src: url("/fonts/Fontspring-DEMO-theseasons-reg.otf") format("opentype");
-  font-weight: 400;
-  font-style: normal;
-  font-display: swap;
-}
-
-@font-face {
-  font-family: "The Seasons";
-  src: url("/fonts/Fontspring-DEMO-theseasons-bd.otf") format("opentype");
-  font-weight: 700;
-  font-style: normal;
-  font-display: swap;
-}
-
-@font-face {
-  font-family: "Neue Montreal";
-  src: url("/fonts/NeueMontreal-Regular.otf") format("opentype");
-  font-weight: 400;
-  font-style: normal;
-  font-display: swap;
-}
-
-@font-face {
-  font-family: "Neue Montreal";
-  src: url("/fonts/NeueMontreal-Medium.otf") format("opentype");
-  font-weight: 500;
-  font-style: normal;
-  font-display: swap;
-}
-
-@font-face {
-  font-family: "Neue Montreal";
-  src: url("/fonts/NeueMontreal-Bold.otf") format("opentype");
-  font-weight: 700;
-  font-style: normal;
-  font-display: swap;
-}
-
 /* ─── CSS Variables (Theme Defaults) ────────────────────── */
 :root {
   --color-primary: #fff4b8;
@@ -73,10 +16,10 @@
   --color-name: #4a2c1d;
   --color-subtitle: #a01717;
 
-  --font-heading: "Neue Montreal", sans-serif;
-  --font-body: "Neue Montreal", sans-serif;
-  --font-name: "The Seasons", serif;
-  --font-buttons: "Neue Montreal", sans-serif;
+  --font-heading: var(--font-dm-sans), sans-serif;
+  --font-body: var(--font-dm-sans), sans-serif;
+  --font-name: var(--font-playfair), serif;
+  --font-buttons: var(--font-dm-sans), sans-serif;
 
   --button-radius: 9999px;
 }
@@ -115,7 +58,7 @@ body {
 
 /* ─── Dashboard Font Overrides ─────────────────────────── */
 .dashboard-heading {
-  font-family: "The Seasons", serif;
+  font-family: var(--font-playfair), serif;
 }
 
 /* ─── Link Card Transitions ─────────────────────────────── */

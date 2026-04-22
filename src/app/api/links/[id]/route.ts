@@ -19,6 +19,29 @@ export async function GET(
   return NextResponse.json(link);
 }
 
+const ALLOWED_LINK_KEYS = [
+  "title",
+  "url",
+  "category",
+  "isVisible",
+  "scheduledStart",
+  "autoHideDays",
+  "manualOverride",
+  "emoji",
+  "socialPlatform",
+  "thumbnailUrl",
+] as const;
+
+function isSafeHttpUrl(value: unknown): value is string {
+  if (typeof value !== "string") return false;
+  try {
+    const u = new URL(value);
+    return u.protocol === "http:" || u.protocol === "https:";
+  } catch {
+    return false;
+  }
+}
+
 export async function PUT(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
@@ -27,10 +50,22 @@ export async function PUT(
     const { id } = await params;
     const body = await request.json();
 
+    if ("url" in body && !isSafeHttpUrl(body.url)) {
+      return NextResponse.json(
+        { error: "URL must start with http:// or https://" },
+        { status: 400 },
+      );
+    }
+
+    const update: Record<string, unknown> = {};
+    for (const key of ALLOWED_LINK_KEYS) {
+      if (key in body) update[key] = body[key];
+    }
+
     const [result] = await db
       .update(links)
       .set({
-        ...body,
+        ...update,
         updatedAt: new Date().toISOString(),
       })
       .where(eq(links.id, Number(id)))

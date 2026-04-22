@@ -42,13 +42,13 @@ export default function LoginPage() {
   return (
     <div
       className="flex min-h-screen items-center justify-center bg-gray-50"
-      style={{ fontFamily: '"DM Sans", sans-serif' }}
+      style={{ fontFamily: 'var(--font-dm-sans), sans-serif' }}
     >
       <div className="w-full max-w-sm rounded-2xl border border-gray-200 bg-white p-8 shadow-sm">
         <div className="mb-6 text-center">
           <h1
             className="mb-1 text-2xl font-bold text-gray-900"
-            style={{ fontFamily: '"Playfair Display", serif' }}
+            style={{ fontFamily: 'var(--font-playfair), serif' }}
           >
             LinkBio
           </h1>

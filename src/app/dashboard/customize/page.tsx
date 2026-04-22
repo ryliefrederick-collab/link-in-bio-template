@@ -148,7 +148,7 @@ export default function CustomizePage() {
     <div>
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900" style={{ fontFamily: '"The Seasons", serif' }}>Customize</h1>
+          <h1 className="text-2xl font-bold text-gray-900" style={{ fontFamily: 'var(--font-playfair), serif' }}>Customize</h1>
           <p className="mt-1 text-sm text-gray-500">
             Edit your profile and theme settings.
           </p>
@@ -350,13 +350,13 @@ export default function CustomizePage() {
                 )}
                 <p
                   className="text-sm font-bold"
-                  style={{ fontFamily: '"The Seasons", serif', color: colors.nameColor }}
+                  style={{ fontFamily: 'var(--font-playfair), serif', color: colors.nameColor }}
                 >
                   {profileName || "Your Name"}
                 </p>
                 <p
                   className="text-xs"
-                  style={{ fontFamily: '"Neue Montreal", sans-serif', color: colors.subtitleColor }}
+                  style={{ fontFamily: 'var(--font-dm-sans), sans-serif', color: colors.subtitleColor }}
                 >
                   {profileBio || "Your bio here"}
                 </p>
@@ -369,7 +369,7 @@ export default function CustomizePage() {
                   backgroundColor: colors.campaignBg,
                   borderColor: colors.campaignBorder,
                   color: colors.nameColor,
-                  fontFamily: '"Neue Montreal", sans-serif',
+                  fontFamily: 'var(--font-dm-sans), sans-serif',
                 }}
               >
                 Campaign Link
@@ -384,7 +384,7 @@ export default function CustomizePage() {
                     backgroundColor: colors.buttonBg,
                     color: colors.buttonText,
                     borderRadius: buttonRadius,
-                    fontFamily: '"Neue Montreal", sans-serif',
+                    fontFamily: 'var(--font-dm-sans), sans-serif',
                   }}
                 >
                   {label}

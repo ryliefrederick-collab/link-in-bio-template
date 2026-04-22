@@ -136,8 +136,8 @@ async function main() {
         subtitleColor: "#a01717",
       }),
       fontPairing: JSON.stringify({
-        heading: '"Neue Montreal", sans-serif',
-        body: '"Neue Montreal", sans-serif',
+        heading: "var(--font-playfair), serif",
+        body: "var(--font-dm-sans), sans-serif",
       }),
       buttonStyle: JSON.stringify({
         borderRadius: "9999px",

@@ -27,7 +27,7 @@ export function Sidebar() {
         <Link
           href="/dashboard"
           className="text-lg font-bold text-gray-900"
-          style={{ fontFamily: '"The Seasons", serif' }}
+          style={{ fontFamily: 'var(--font-playfair), serif' }}
         >
           LinkBio
         </Link>

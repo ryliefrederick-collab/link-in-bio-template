@@ -27,7 +27,7 @@ export default function DashboardHome() {
 
   return (
     <div>
-      <h1 className="text-2xl font-bold text-gray-900" style={{ fontFamily: '"The Seasons", serif' }}>Dashboard</h1>
+      <h1 className="text-2xl font-bold text-gray-900" style={{ fontFamily: 'var(--font-playfair), serif' }}>Dashboard</h1>
       <p className="mt-1 text-sm text-gray-500">
         Overview of your link-in-bio page.
       </p>

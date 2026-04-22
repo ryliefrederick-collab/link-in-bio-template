@@ -16,17 +16,31 @@ export async function GET() {
   return NextResponse.json(settings);
 }
 
+const ALLOWED_SETTINGS_KEYS = [
+  "profileName",
+  "profileBio",
+  "profileImageUrl",
+  "colorPalette",
+  "fontPairing",
+  "buttonStyle",
+  "themePreset",
+] as const;
+
 export async function PUT(request: NextRequest) {
   try {
     const body = await request.json();
+    const update: Record<string, unknown> = {};
+    for (const key of ALLOWED_SETTINGS_KEYS) {
+      if (key in body) update[key] = body[key];
+    }
 
     const [result] = await db
       .insert(siteSettings)
-      .values({ id: 1 })
+      .values({ id: 1, ...update })
       .onConflictDoUpdate({
         target: siteSettings.id,
         set: {
-          ...body,
+          ...update,
           updatedAt: new Date().toISOString(),
         },
       })

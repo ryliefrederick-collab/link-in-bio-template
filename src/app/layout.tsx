@@ -1,6 +1,21 @@
 import type { Metadata } from "next";
-import { Pinyon_Script } from "next/font/google";
+import { DM_Sans, Pinyon_Script, Playfair_Display } from "next/font/google";
+import { eq } from "drizzle-orm";
+import { db } from "@/db";
+import { siteSettings } from "@/db/schema";
 import "./globals.css";
+
+const dmSans = DM_Sans({
+  subsets: ["latin"],
+  variable: "--font-dm-sans",
+  display: "swap",
+});
+
+const playfair = Playfair_Display({
+  subsets: ["latin"],
+  variable: "--font-playfair",
+  display: "swap",
+});
 
 const pinyonScript = Pinyon_Script({
   weight: "400",
@@ -9,10 +24,19 @@ const pinyonScript = Pinyon_Script({
   display: "swap",
 });
 
-export const metadata: Metadata = {
-  title: "Rylie Frederick",
-  description: "Links",
-};
+export async function generateMetadata(): Promise<Metadata> {
+  try {
+    const settings = await db.query.siteSettings.findFirst({
+      where: eq(siteSettings.id, 1),
+    });
+    const title = settings?.profileName?.trim() || "My Links";
+    const description =
+      settings?.profileBio?.trim() || "Links, socials, and things I love.";
+    return { title, description };
+  } catch {
+    return { title: "My Links", description: "Links, socials, and things I love." };
+  }
+}
 
 export default function RootLayout({
   children,
@@ -20,7 +44,10 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={pinyonScript.variable}>
+    <html
+      lang="en"
+      className={`${dmSans.variable} ${playfair.variable} ${pinyonScript.variable}`}
+    >
       <body className="antialiased">{children}</body>
     </html>
   );

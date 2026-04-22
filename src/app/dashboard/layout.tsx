@@ -11,7 +11,7 @@ export default function DashboardLayout({
     <div
       className="flex h-screen"
       style={{
-        fontFamily: '"Neue Montreal", sans-serif',
+        fontFamily: 'var(--font-dm-sans), sans-serif',
         background: "#f9fafb",
       }}
     >

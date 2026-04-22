@@ -112,7 +112,7 @@ export default function EarningsPage() {
     <div>
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900" style={{ fontFamily: '"The Seasons", serif' }}>Earnings</h1>
+          <h1 className="text-2xl font-bold text-gray-900" style={{ fontFamily: 'var(--font-playfair), serif' }}>Earnings</h1>
           <p className="mt-1 text-sm text-gray-500">
             Track affiliate and partnership earnings.
           </p>

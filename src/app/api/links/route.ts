@@ -30,6 +30,18 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
     }
 
+    try {
+      const parsed = new URL(url);
+      if (parsed.protocol !== "http:" && parsed.protocol !== "https:") {
+        throw new Error();
+      }
+    } catch {
+      return NextResponse.json(
+        { error: "URL must start with http:// or https://" },
+        { status: 400 },
+      );
+    }
+
     // Get max sort order for this category
     const existing = await db.query.links.findMany({
       where: eq(links.category, category as Link["category"]),
