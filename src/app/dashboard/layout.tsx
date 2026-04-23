@@ -1,6 +1,20 @@
+import type { Metadata } from "next";
+import { eq } from "drizzle-orm";
+import { db } from "@/db";
+import { siteSettings } from "@/db/schema";
 import { Sidebar } from "@/components/dashboard/Sidebar";
 
-// TODO: Add auth middleware here in V2
+export async function generateMetadata(): Promise<Metadata> {
+  try {
+    const settings = await db.query.siteSettings.findFirst({
+      where: eq(siteSettings.id, 1),
+    });
+    const name = settings?.profileName?.trim();
+    return { title: name ? `${name} Dashboard` : "Dashboard" };
+  } catch {
+    return { title: "Dashboard" };
+  }
+}
 
 export default function DashboardLayout({
   children,
