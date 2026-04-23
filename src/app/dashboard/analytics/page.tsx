@@ -49,18 +49,31 @@ export default function AnalyticsPage() {
   const [clicksData, setClicksData] = useState<TimeData[]>([]);
   const [visitsData, setVisitsData] = useState<TimeData[]>([]);
   const [campaignData, setCampaignData] = useState<CampaignData[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   const fetchData = useCallback(async () => {
-    const [ovRes, clRes, viRes, cpRes] = await Promise.all([
-      fetch(`/api/analytics/overview?period=${period}`),
-      fetch(`/api/analytics/clicks?period=${period}`),
-      fetch(`/api/analytics/visits?period=${period}`),
-      fetch(`/api/analytics/campaigns?period=${period}`),
-    ]);
-    setOverview(await ovRes.json());
-    setClicksData(await clRes.json());
-    setVisitsData(await viRes.json());
-    setCampaignData(await cpRes.json());
+    setLoading(true);
+    setError(null);
+    try {
+      const [ovRes, clRes, viRes, cpRes] = await Promise.all([
+        fetch(`/api/analytics/overview?period=${period}`),
+        fetch(`/api/analytics/clicks?period=${period}`),
+        fetch(`/api/analytics/visits?period=${period}`),
+        fetch(`/api/analytics/campaigns?period=${period}`),
+      ]);
+      if (!ovRes.ok || !clRes.ok || !viRes.ok || !cpRes.ok) {
+        throw new Error("Failed to load analytics");
+      }
+      setOverview(await ovRes.json());
+      setClicksData(await clRes.json());
+      setVisitsData(await viRes.json());
+      setCampaignData(await cpRes.json());
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to load analytics");
+    } finally {
+      setLoading(false);
+    }
   }, [period]);
 
   useEffect(() => {
@@ -95,8 +108,38 @@ export default function AnalyticsPage() {
         </div>
       </div>
 
+      {loading && !overview && (
+        <div className="mt-6 grid grid-cols-3 gap-4">
+          {[0, 1, 2].map((i) => (
+            <div
+              key={i}
+              className="h-20 animate-pulse rounded-xl border border-gray-200 bg-white"
+            />
+          ))}
+        </div>
+      )}
+
+      {error && (
+        <div className="mt-6 rounded-xl border border-red-200 bg-red-50 p-5 text-sm text-red-700">
+          {error}. Try refreshing the page.
+        </div>
+      )}
+
       {overview && (
         <>
+          {/* Empty-state banner when no activity yet */}
+          {overview.visits === 0 && overview.clicks === 0 && (
+            <div className="mt-6 rounded-xl border border-gray-200 bg-white p-6 text-center">
+              <p className="text-sm font-medium text-gray-900">
+                No activity yet for this period.
+              </p>
+              <p className="mt-1 text-sm text-gray-500">
+                Tracking is active — visits and clicks will show up here as
+                people view your bio page.
+              </p>
+            </div>
+          )}
+
           {/* Stat Cards */}
           <div className="mt-6 grid grid-cols-3 gap-4">
             <StatCard label="Page Visits" value={overview.visits.toString()} />
