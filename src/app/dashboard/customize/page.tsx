@@ -249,9 +249,9 @@ export default function CustomizePage() {
                   <button
                     key={key}
                     onClick={() => applyPreset(key)}
-                    className="rounded-lg border border-gray-200 px-3 py-2 text-sm font-medium capitalize text-gray-700 transition-colors hover:border-gray-400 hover:bg-gray-50"
+                    className="flex items-center gap-3 rounded-lg border border-gray-200 px-3 py-2 text-sm font-medium capitalize text-gray-700 transition-colors hover:border-gray-400 hover:bg-gray-50"
                   >
-                    <div className="mb-1 flex gap-1">
+                    <div className="flex gap-1">
                       <div
                         className="h-3 w-3 rounded-full"
                         style={{ backgroundColor: THEME_PRESETS[key].colors.primary }}
@@ -265,7 +265,7 @@ export default function CustomizePage() {
                         style={{ backgroundColor: THEME_PRESETS[key].colors.accent }}
                       />
                     </div>
-                    {key}
+                    <span>{key}</span>
                   </button>
                 )
               )}
